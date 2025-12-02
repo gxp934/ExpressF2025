@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= pageTitle %></title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
+
+    <main class="w-full max-w-2xl bg-white p-8 rounded-xl shadow-2xl space-y-8">
+        <header class="text-center">
+            <h1 class="text-3xl font-bold text-indigo-600">
+                Cuestionario de Hábitos
+            </h1>
+            <p class="text-lg text-gray-600 mt-2">
+                ID de Usuario: <span class="font-semibold text-indigo-500"><%= userId %></span>
+            </p>
+            <p class="text-sm text-gray-500 mt-1">
+                Completa este breve formulario para generar tu "Habit Map".
+            </p>
+        </header>
+
+        <form action="/submit-habit" method="POST" class="space-y-6">
+            <!-- Campo oculto para enviar el ID del usuario de vuelta al servidor -->
+            <input type="hidden" name="userId" value="<%= userId %>">
+            
+            <!-- Pregunta 1: Hora Pico -->
+            <div class="bg-indigo-50 p-6 rounded-lg border border-indigo-200">
+                <label for="peak_hour" class="block text-xl font-semibold text-gray-800 mb-2">
+                    1. Hora Pico de Energía
+                </label>
+                <p class="text-sm text-gray-600 mb-4">
+                    ¿A qué hora del día (0 a 23) sientes tu mayor nivel de concentración y energía natural?
+                </p>
+                <div class="flex items-center space-x-4">
+                    <input 
+                        type="number" 
+                        id="peak_hour" 
+                        name="peak_hour" 
+                        min="0" 
+                        max="23" 
+                        required 
+                        value="10"
+                        class="w-24 text-center px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-lg font-bold"
+                    >
+                    <span class="text-xl text-gray-600">:00 hrs</span>
+                </div>
+            </div>
+
+            <!-- Pregunta 2: Intensidad de Tareas -->
+            <div class="bg-blue-50 p-6 rounded-lg border border-blue-200">
+                <label for="intensity_score" class="block text-xl font-semibold text-gray-800 mb-2">
+                    2. Puntuación de Intensidad Diaria
+                </label>
+                <p class="text-sm text-gray-600 mb-4">
+                    En una escala del 0 al 100, ¿qué tan intensa o demandante es tu jornada diaria promedio (trabajo, estudio, ejercicio, etc.)?
+                </p>
+                <div class="flex flex-col space-y-2">
+                    <input 
+                        type="range" 
+                        id="intensity_score" 
+                        name="intensity_score" 
+                        min="0" 
+                        max="100" 
+                        step="1" 
+                        required 
+                        value="60"
+                        class="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer range-lg"
+                        oninput="document.getElementById('intensityValue').innerText = this.value + '/100'"
+                    >
+                    <div class="text-right text-lg font-bold text-blue-600">
+                        Intensidad: <span id="intensityValue">60/100</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pregunta 3: Interrupciones -->
+            <div class="bg-red-50 p-6 rounded-lg border border-red-200">
+                <label for="interruptions" class="block text-xl font-semibold text-gray-800 mb-2">
+                    3. Número de Interrupciones
+                </label>
+                <p class="text-sm text-gray-600 mb-4">
+                    En promedio, ¿cuántas interrupciones (notificaciones, llamadas, gente, etc.) tienes en un día de trabajo/foco? (Máx. 10)
+                </p>
+                <div class="flex items-center space-x-4">
+                    <input 
+                        type="number" 
+                        id="interruptions" 
+                        name="interruptions" 
+                        min="0" 
+                        max="10" 
+                        required 
+                        value="3"
+                        class="w-24 text-center px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-lg font-bold"
+                    >
+                    <span class="text-xl text-gray-600">veces</span>
+                </div>
+            </div>
+
+            <!-- Botón de Envío -->
+            <button 
+                type="submit" 
+                class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-lg text-xl font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150"
+            >
+                Generar Mi Habit Map (Ver Resultados)
+            </button>
+        </form>
+
+    </main>
+
+    <script>
+        // Inicializa el valor del slider al cargar
+        document.getElementById('intensityValue').innerText = document.getElementById('intensity_score').value + '/100';
+    </script>
+</body>
+</html>
