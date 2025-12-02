@@ -1,114 +1,136 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= pageTitle %></title>
+    <!-- Carga de Tailwind CSS para el estilo -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Carga de la librería Chart.js para dibujar los gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        /* Garantiza que el lienzo del gráfico se estire dentro de su contenedor */
-        #chartContainer {
-            height: 400px; /* Altura fija para la visualización */
-            width: 100%;
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+        }
+        .container-card {
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        #comparisonChart {
+            height: 400px; /* Define una altura para el gráfico */
         }
     </style>
-    <!-- Carga la librería Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
-    
 </head>
-<body class="bg-gray-50 min-h-screen p-4 md:p-8">
+<body class="p-8 md:p-12">
 
-    <!-- Contenedor Principal -->
-    <main class="max-w-4xl mx-auto bg-white p-6 md:p-10 rounded-xl shadow-2xl space-y-8">
-        <header class="text-center border-b pb-4">
-            <h1 class="text-4xl font-extrabold text-indigo-700">
-                Tu Habit Map Personalizado
-            </h1>
-            <p class="text-xl text-gray-600 mt-2">
-                ¡Hola, <span class="font-bold text-indigo-500"><%= userId %></span>!
-            </p>
-            <p class="text-sm text-gray-400 mt-1">
-                (Datos basados en <%= totalParticipants %> participantes en total)
-            </p>
-        </header>
+    <div class="max-w-4xl mx-auto bg-white p-6 md:p-10 rounded-xl container-card">
 
-        <!-- Sección de Visualización (10 pts) -->
-        <section class="bg-white p-4 rounded-lg border border-gray-100">
-            <h2 class="text-2xl font-semibold text-gray-800 mb-4 text-center">
-                Comparación de Hábitos (Tú vs. Comunidad)
-            </h2>
-            <!-- Contenedor del Gráfico -->
-            <div id="chartContainer" class="relative">
-                <canvas id="habitMapChart"></canvas>
+        <h1 class="text-4xl font-bold text-center text-indigo-700 mb-2">Your Personalized Habit Map</h1>
+        <p class="text-center text-gray-600 mb-8">Hello, <span class="font-semibold text-indigo-600"><%= userId %></span>!</p>
+        <p class="text-center text-sm text-gray-500 mb-10">(Data based on <%= totalParticipants %> total participants)</p>
+
+        <!-- SECCIÓN DE GRÁFICO -->
+        <section class="space-y-4 pt-4 border-t border-gray-100">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4 text-center">Habit Comparison (You vs. Community)</h2>
+            <div class="bg-gray-50 p-4 rounded-lg shadow-inner">
+                <!-- Este es el elemento CANVAS donde Chart.js dibujará el gráfico -->
+                <canvas id="comparisonChart"></canvas> 
             </div>
         </section>
 
-        <!-- Storytelling y Análisis (10 pts) -->
-        <section class="space-y-4 pt-4 border-t border-gray-100">
-            <h2 class="text-2xl font-bold text-gray-800">
-                Tu Historia de Hábitos
-            </h2>
-            
-            <%
-                // Lógica simple para el Storytelling
-                let peakMsg, intensityMsg, interruptionsMsg;
+        <!-- SECCIÓN DE ANÁLISIS DE TEXTO -->
+        <section class="mt-12 space-y-6">
+            <h2 class="text-3xl font-bold text-gray-800 mb-4 border-b pb-2">Your Habit Story</h2>
 
-                // 1. Análisis de Hora Pico
-                if (userHabit.peak_hour < communityAvg.peak_hour - 2) {
-                    peakMsg = 'Eres un/a **madrugador/a extremo**.';
-                } else if (userHabit.peak_hour > communityAvg.peak_hour + 2) {
-                    peakMsg = 'Muestras un patrón de **búho nocturno**.';
+            <% 
+                // Variables for easier reading
+                const userHabit = locals.userHabit;
+                const communityAvg = locals.communityAvg;
+                let peakHourMsg = '';
+                let intensityMsg = '';
+                let interruptionsMsg = '';
+
+                // --- 1. Peak Hour Analysis ---
+                if (userHabit.peak_hour < communityAvg.peak_hour - 1) { // 1 hour difference threshold
+                    peakHourMsg = `You are significantly more productive in the early hours (around ${userHabit.peak_hour}:00) compared to the community average (${communityAvg.peak_hour}:00). This suggests you might be a "Morning Lark".`;
+                } else if (userHabit.peak_hour > communityAvg.peak_hour + 1) {
+                    peakHourMsg = `Your peak productivity is later in the day (around ${userHabit.peak_hour}:00) compared to the community average (${communityAvg.peak_hour}:00). This suggests you might be a "Night Owl".`;
                 } else {
-                    peakMsg = 'Tu hora pico está **alineada con la mayoría** de la comunidad.';
+                    peakHourMsg = `Your peak hour of focus (around ${userHabit.peak_hour}:00) is similar to the community average (${communityAvg.peak_hour}:00).`;
                 }
 
-                // 2. Análisis de Intensidad
-                if (userHabit.intensity_score > communityAvg.intensity_score + 10) {
-                    intensityMsg = 'Tienes un **ritmo de vida muy alto** (Intensidad: ' + userHabit.intensity_score + ').';
-                } else if (userHabit.intensity_score < communityAvg.intensity_score - 10) {
-                    intensityMsg = 'Pareces llevar un **ritmo más tranquilo y bajo** (Intensidad: ' + userHabit.intensity_score + ').';
+                // --- 2. Intensity Analysis ---
+                if (userHabit.intensity_score > communityAvg.intensity_score) {
+                    intensityMsg = `You have a very high life pace (${userHabit.intensity_score} vs. ${communityAvg.intensity_score}). You thrive under pressure and maintain focus well.`;
+                } else if (userHabit.intensity_score < communityAvg.intensity_score) {
+                    intensityMsg = `You seem to have a calmer and lower life pace (${userHabit.intensity_score} vs. ${communityAvg.intensity_score}). This suggests a focus on quality over speed.`;
                 } else {
-                    intensityMsg = 'Tu intensidad diaria es **similar al promedio** (' + communityAvg.intensity_score + ').';
+                    intensityMsg = `Your daily intensity is similar to the community average (${userHabit.intensity_score} vs. ${communityAvg.intensity_score}).`;
                 }
 
-                // 3. Análisis de Interrupciones
-                if (userHabit.interruptions > communityAvg.interruptions + 2) {
-                    interruptionsMsg = 'Experimentas **muchas más interrupciones** que la media. Priorizar el enfoque podría ser clave.';
-                } else if (userHabit.interruptions < communityAvg.interruptions - 2) {
-                    interruptionsMsg = '¡Excelente! Eres **muy bueno/a manteniendo el foco**, con pocas interrupciones.';
+                // --- 3. Interruptions Analysis ---
+                if (userHabit.interruptions > communityAvg.interruptions + 1) {
+                    interruptionsMsg = `You experience significantly more interruptions daily (${userHabit.interruptions} vs. ${communityAvg.interruptions} avg.). Focus on blocking time for deep work.`;
+                } else if (userHabit.interruptions < communityAvg.interruptions - 1) {
+                    interruptionsMsg = `Excellent! You are very good at minimizing distractions (${userHabit.interruptions} vs. ${communityAvg.interruptions} avg.). You maintain high flow states.`;
                 } else {
-                    interruptionsMsg = 'El nivel de interrupciones que manejas es **típico de la comunidad**.';
+                    interruptionsMsg = `Your level of daily interruptions (${userHabit.interruptions}) is close to the community average (${communityAvg.interruptions}).`;
                 }
             %>
             
-            <p class="text-lg text-gray-700 leading-relaxed">
-                El gráfico de radar muestra cómo se compara tu <span class="font-semibold text-indigo-600">forma de vida natural</span> con el promedio de otros participantes.
-            </p>
+            <div class="bg-blue-50 p-6 rounded-lg border-l-4 border-blue-500">
+                <h3 class="text-xl font-semibold text-blue-800 mb-2">Peak Productivity Hour</h3>
+                <p class="text-gray-700"><%= peakHourMsg %></p>
+            </div>
 
-            <ul class="list-disc list-inside space-y-3 ml-4 text-gray-700">
-                <li><strong class="text-indigo-600">Energía:</strong> <%= peakMsg %> (Comunidad promedio: <%= communityAvg.peak_hour %>:00).</li>
-                <li><strong class="text-green-600">Actividad:</strong> <%= intensityMsg %> (Comunidad promedio: <%= communityAvg.intensity_score %>).</li>
-                <li><strong class="text-red-600">Foco:</strong> <%= interruptionsMsg %> (Comunidad promedio: <%= communityAvg.interruptions %> interrupciones).</li>
-            </ul>
+            <div class="bg-red-50 p-6 rounded-lg border-l-4 border-red-500">
+                <h3 class="text-xl font-semibold text-red-800 mb-2">Life Pace and Intensity</h3>
+                <p class="text-gray-700"><%= intensityMsg %></p>
+            </div>
 
-            <p class="text-sm text-gray-500 pt-4 italic">
-                <a href="/start" class="text-indigo-500 hover:underline">Volver a la Introducción</a> | Proyecto "Your Habit Map".
-            </p>
+            <div class="bg-green-50 p-6 rounded-lg border-l-4 border-green-500">
+                <h3 class="text-xl font-semibold text-green-800 mb-2">Distraction Resilience</h3>
+                <p class="text-gray-700"><%= interruptionsMsg %></p>
+            </div>
+            
+            <div class="pt-6 text-center">
+                <a href="/start" class="inline-block px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 transition duration-300">
+                    Take the Quiz Again
+                </a>
+            </div>
+
         </section>
 
-        <!-- Datos Ocultos (Necesarios para Chart.js) -->
-        <!-- Inyectamos los datos del servidor a través de EJS en elementos ocultos -->
-        <script id="user-data" type="application/json">
-            <%= JSON.stringify(userHabit) %>
-        </script>
-        <script id="community-data" type="application/json">
-            <%= JSON.stringify(communityAvg) %>
-        </script>
+    </div>
 
-    </main>
-    
-    <!-- Carga el script de configuración de Chart.js -->
-    <script src="/js/chartConfig.js"></script>
+    <!-- 
+        Paso 3: Llamar al script de configuración del gráfico
+        Esto debe hacerse DESPUÉS de que el elemento <canvas> esté en el DOM.
+    -->
+    <script src="/javascripts/chartConfig.js"></script>
+
+    <script>
+        // Ejecutar la función que dibuja el gráfico cuando la página está cargada
+        document.addEventListener('DOMContentLoaded', function() {
+            // Pasamos los datos que vienen del servidor (Express)
+            const userData = {
+                peak_hour: <%= JSON.stringify(userHabit.peak_hour) %>,
+                intensity_score: <%= JSON.stringify(userHabit.intensity_score) %>,
+                interruptions: <%= JSON.stringify(userHabit.interruptions) %>
+            };
+
+            const communityAvg = {
+                peak_hour: <%= JSON.stringify(communityAvg.peak_hour) %>,
+                intensity_score: <%= JSON.stringify(communityAvg.intensity_score) %>,
+                interruptions: <%= JSON.stringify(communityAvg.interruptions) %>
+            };
+            
+            const totalParticipants = <%= JSON.stringify(totalParticipants) %>;
+
+            // Llamar a la función del script chartConfig.js
+            createHabitComparisonChart('comparisonChart', userData, communityAvg, totalParticipants);
+        });
+    </script>
+
 </body>
 </html>

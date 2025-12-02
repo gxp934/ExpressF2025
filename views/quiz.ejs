@@ -1,120 +1,165 @@
 <!DOCTYPE html>
-<html lang="es">
+
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= pageTitle %></title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title><%= pageTitle %></title>
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- Lucide Icons (CORREGIDO) -->
+<script src="https://www.google.com/search?q=https://unpkg.com/lucide%40latest"></script>
+<style>
+body {
+font-family: 'Inter', sans-serif;
+background-color: #f0f4f8;
+}
+.card {
+box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+.icon-label {
+display: flex;
+align-items: center;
+gap: 0.5rem;
+}
+/* Gradient Class for the Title (APLICA EL RELLENO DE TEXTO CON GRADIENTE) /
+.gradient-text {
+/ Blue-700 to Cyan-500 /
+background-image: linear-gradient(to right, #1d4ed8, #06b6d4);
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+background-clip: text;
+color: transparent; / Fallback for browsers /
+}
+/ Custom styles for range inputs (Tailwind utility classes are used where possible) */
+</style>
 </head>
-<body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
+<body class="p-4 md:p-8">
 
-    <main class="w-full max-w-2xl bg-white p-8 rounded-xl shadow-2xl space-y-8">
-        <header class="text-center">
-            <h1 class="text-3xl font-bold text-indigo-600">
-                Cuestionario de Hábitos
-            </h1>
-            <p class="text-lg text-gray-600 mt-2">
-                ID de Usuario: <span class="font-semibold text-indigo-500"><%= userId %></span>
-            </p>
-            <p class="text-sm text-gray-500 mt-1">
-                Completa este breve formulario para generar tu "Habit Map".
-            </p>
-        </header>
+<div class="max-w-3xl mx-auto bg-white p-6 md:p-10 rounded-xl card">
 
-        <form action="/submit-habit" method="POST" class="space-y-6">
-            <!-- Campo oculto para enviar el ID del usuario de vuelta al servidor -->
-            <input type="hidden" name="userId" value="<%= userId %>">
-            
-            <!-- Pregunta 1: Hora Pico -->
-            <div class="bg-indigo-50 p-6 rounded-lg border border-indigo-200">
-                <label for="peak_hour" class="block text-xl font-semibold text-gray-800 mb-2">
-                    1. Hora Pico de Energía
-                </label>
-                <p class="text-sm text-gray-600 mb-4">
-                    ¿A qué hora del día (0 a 23) sientes tu mayor nivel de concentración y energía natural?
-                </p>
-                <div class="flex items-center space-x-4">
-                    <input 
-                        type="number" 
-                        id="peak_hour" 
-                        name="peak_hour" 
-                        min="0" 
-                        max="23" 
-                        required 
-                        value="10"
-                        class="w-24 text-center px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-lg font-bold"
-                    >
-                    <span class="text-xl text-gray-600">:00 hrs</span>
-                </div>
-            </div>
+    <div class="text-center mb-10 border-b pb-4">
+        <!-- Title with Gradient -->
+        <h1 class="text-3xl font-extrabold gradient-text">Habit Questionnaire</h1>
+        <p class="text-gray-500 mt-2">Welcome, <span class="font-semibold text-blue-600"><%= userId %></span>. Please answer these questions honestly.</p>
+    </div>
 
-            <!-- Pregunta 2: Intensidad de Tareas -->
-            <div class="bg-blue-50 p-6 rounded-lg border border-blue-200">
-                <label for="intensity_score" class="block text-xl font-semibold text-gray-800 mb-2">
-                    2. Puntuación de Intensidad Diaria
-                </label>
-                <p class="text-sm text-gray-600 mb-4">
-                    En una escala del 0 al 100, ¿qué tan intensa o demandante es tu jornada diaria promedio (trabajo, estudio, ejercicio, etc.)?
-                </p>
-                <div class="flex flex-col space-y-2">
-                    <input 
-                        type="range" 
-                        id="intensity_score" 
-                        name="intensity_score" 
-                        min="0" 
-                        max="100" 
-                        step="1" 
-                        required 
-                        value="60"
-                        class="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer range-lg"
-                        oninput="document.getElementById('intensityValue').innerText = this.value + '/100'"
-                    >
-                    <div class="text-right text-lg font-bold text-blue-600">
-                        Intensidad: <span id="intensityValue">60/100</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Pregunta 3: Interrupciones -->
-            <div class="bg-red-50 p-6 rounded-lg border border-red-200">
-                <label for="interruptions" class="block text-xl font-semibold text-gray-800 mb-2">
-                    3. Número de Interrupciones
-                </label>
-                <p class="text-sm text-gray-600 mb-4">
-                    En promedio, ¿cuántas interrupciones (notificaciones, llamadas, gente, etc.) tienes en un día de trabajo/foco? (Máx. 10)
-                </p>
-                <div class="flex items-center space-x-4">
-                    <input 
-                        type="number" 
-                        id="interruptions" 
-                        name="interruptions" 
-                        min="0" 
-                        max="10" 
-                        required 
-                        value="3"
-                        class="w-24 text-center px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-lg font-bold"
-                    >
-                    <span class="text-xl text-gray-600">veces</span>
-                </div>
-            </div>
-
-            <!-- Botón de Envío -->
-            <button 
-                type="submit" 
-                class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-lg text-xl font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150"
+    <form action="/submit-habit" method="POST" class="space-y-10">
+        <!-- Hidden field for user ID -->
+        <input type="hidden" name="userId" value="<%= userId %>">
+        
+        <!-- Block 1: Peak Hour -->
+        <div class="space-y-4 p-6 bg-blue-50 rounded-lg border-l-4 border-blue-500">
+            <label for="peak_hour" class="block text-xl font-bold text-blue-800 icon-label">
+                <i data-lucide="clock" class="w-6 h-6"></i>
+                What is your peak hour of focus? (0 = midnight, 12 = noon, 23 = 11 PM)
+            </label>
+            <input 
+                type="range" 
+                id="peak_hour" 
+                name="peak_hour" 
+                min="0" 
+                max="23" 
+                step="1" 
+                required 
+                class="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer range-lg"
+                oninput="document.getElementById('peak_hour_value').innerText = this.value + ':00'"
             >
-                Generar Mi Habit Map (Ver Resultados)
-            </button>
-        </form>
+            <div class="text-center text-blue-700 font-semibold">
+                Hour Selected: <span id="peak_hour_value">12:00</span>
+            </div>
+            <div class="flex justify-between text-xs text-blue-600">
+                <span>0:00 (Midnight)</span>
+                <span>12:00 (Noon)</span>
+                <span>23:00 (Late Night)</span>
+            </div>
+        </div>
 
-    </main>
+        <!-- Block 2: Intensity Score -->
+        <div class="space-y-4 p-6 bg-cyan-50 rounded-lg border-l-4 border-cyan-500">
+            <label for="intensity_score" class="block text-xl font-bold text-cyan-800 icon-label">
+                <i data-lucide="zap" class="w-6 h-6"></i>
+                Rate your daily life pace/intensity (0 = Calm, 100 = Highly Intense)
+            </label>
+            <input 
+                type="range" 
+                id="intensity_score" 
+                name="intensity_score" 
+                min="0" 
+                max="100" 
+                step="5" 
+                required 
+                class="w-full h-2 bg-cyan-200 rounded-lg appearance-none cursor-pointer range-lg"
+                oninput="document.getElementById('intensity_score_value').innerText = this.value"
+            >
+            <div class="text-center text-cyan-700 font-semibold">
+                Score Selected: <span id="intensity_score_value">50</span>
+            </div>
+            <div class="flex justify-between text-xs text-cyan-600">
+                <span>0 (Very Calm)</span>
+                <span>50 (Moderate)</span>
+                <span>100 (Highly Intense)</span>
+            </div>
+        </div>
 
-    <script>
-        // Inicializa el valor del slider al cargar
-        document.getElementById('intensityValue').innerText = document.getElementById('intensity_score').value + '/100';
-    </script>
+        <!-- Block 3: Interruptions -->
+        <div class="space-y-4 p-6 bg-red-50 rounded-lg border-l-4 border-red-500">
+            <label for="interruptions" class="block text-xl font-bold text-red-800 icon-label">
+                <i data-lucide="bell" class="w-6 h-6"></i>
+                How many times are you seriously interrupted daily? (0 to 10+)
+            </label>
+            <input 
+                type="range" 
+                id="interruptions" 
+                name="interruptions" 
+                min="0" 
+                max="10" 
+                step="1" 
+                required 
+                class="w-full h-2 bg-red-200 rounded-lg appearance-none cursor-pointer range-lg"
+                oninput="document.getElementById('interruptions_value').innerText = this.value + (this.value == 10 ? '+' : '')"
+            >
+            <div class="text-center text-red-700 font-semibold">
+                Count Selected: <span id="interruptions_value">5</span>
+            </div>
+            <div class="flex justify-between text-xs text-red-600">
+                <span>0 (None)</span>
+                <span>5 (Average)</span>
+                <span>10 (Many+)</span>
+            </div>
+        </div>
+
+        <!-- Submit Button -->
+        <button 
+            type="submit" 
+            class="w-full flex justify-center py-4 px-4 border border-transparent rounded-lg shadow-xl text-xl font-bold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-300 transform hover:scale-[1.01]"
+        >
+            Submit and See My Habit Map
+        </button>
+    </form>
+
+</div>
+
+<!-- Initialize Lucide icons -->
+<script>
+    lucide.createIcons();
+
+    // Initialize displayed values on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        // Initial call to set the display values based on the default range slider values
+        const updateDisplay = (id, suffix = '') => {
+            const input = document.getElementById(id);
+            const display = document.getElementById(id + '_value');
+            if (input && display) {
+                display.innerText = input.value + (id === 'interruptions' && input.value == 10 ? '+' : suffix);
+            }
+        };
+
+        updateDisplay('peak_hour', ':00');
+        updateDisplay('intensity_score');
+        updateDisplay('interruptions');
+    });
+</script>
+
+
 </body>
 </html>

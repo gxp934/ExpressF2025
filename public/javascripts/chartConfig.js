@@ -1,121 +1,107 @@
-// --- Lógica de Visualización para Your Habit Map ---
+console.log("chartConfig.js: Script loaded and function defined."); // ¡CONFIRMACIÓN DE CARGA!
 
 /**
- * Normaliza los datos de 0 a 10 para que todos los ejes
- * del gráfico de radar tengan la misma escala.
+ * Creates and renders a bar chart for habit comparison (User vs. Community).
+ * @param {string} canvasId - The ID of the canvas element where the chart will be drawn.
+ * @param {object} userData - Object containing the user's habit data.
+ * @param {object} communityData - Object containing the community average data.
+ * @param {number} totalParticipants - The total number of participants.
  */
-function normalizeData(data) {
-    // Escalas máximas originales:
-    const MAX_PEAK_HOUR = 23;      // Hora Pico (0 a 23)
-    const MAX_INTENSITY = 100;     // Intensidad (0 a 100)
-    const MAX_INTERRUPTIONS = 10;  // Interrupciones (0 a 10)
-    const MAX_CHART_SCALE = 10;    // Máximo valor en el gráfico de radar
-
-    return {
-        // 1. Hora Pico: (valor / 23) * 10
-        peak_hour: (data.peak_hour / MAX_PEAK_HOUR) * MAX_CHART_SCALE,
-        // 2. Intensidad: (valor / 100) * 10
-        intensity_score: (data.intensity_score / MAX_INTENSITY) * MAX_CHART_SCALE,
-        // 3. Interrupciones: (valor / 10) * 10 (Ya está en la escala 0-10, pero se incluye para consistencia)
-        interruptions: (data.interruptions / MAX_INTERRUPTIONS) * MAX_CHART_SCALE
-    };
-}
-
-
-window.onload = function() {
-    // 1. Obtener los datos inyectados por EJS desde el HTML
-    const userDataElement = document.getElementById('user-data');
-    const communityDataElement = document.getElementById('community-data');
-
-    if (!userDataElement || !communityDataElement) {
-        console.error("Datos de usuario/comunidad no encontrados en el DOM. Asegúrate que EJS los haya inyectado.");
+function createHabitComparisonChart(canvasId, userData, communityData, totalParticipants) {
+    
+    // Verifica que Chart y el canvas existan antes de intentar dibujar
+    const canvasElement = document.getElementById(canvasId);
+    if (!canvasElement) {
+        console.error("Error: Canvas element not found with ID:", canvasId);
         return;
     }
-
-    // Parsear los datos de JSON a objetos JavaScript
-    const userData = JSON.parse(userDataElement.textContent);
-    const communityAvg = JSON.parse(communityDataElement.textContent);
-
-    // 2. Normalizar los datos para la escala del gráfico
-    const userNormalized = normalizeData(userData);
-    const communityNormalized = normalizeData(communityAvg);
-
-    // 3. Configuración del Gráfico de Radar
-    const ctx = document.getElementById('habitMapChart').getContext('2d');
+    if (typeof Chart === 'undefined') {
+        console.error("Error: Chart.js library not loaded.");
+        return;
+    }
     
+    // Si la función se llama, debería dibujar el gráfico.
+    console.log("chartConfig.js: Attempting to draw chart with data:", userData);
+
+    const ctx = canvasElement.getContext('2d');
+    
+    // Data points for the chart
+    const dataLabels = ['Peak Hour (0-23)', 'Intensity Score (0-100)', 'Interruptions (0-10)'];
+
+    // Normaliza la data. Multiplicamos Interrupciones por 10 para usar el eje 0-100.
+    const userInterruptions = Math.min(userData.interruptions, 10);
+    const communityInterruptions = Math.min(communityData.interruptions, 10);
+
+    // Data sets for the chart
     const data = {
-        labels: [
-            'Hora Pico (00:00 - 23:00)',
-            'Nivel de Intensidad (0 - 100)',
-            'Interrupciones (0 - 10)',
-        ],
+        labels: dataLabels,
         datasets: [
             {
-                label: 'Tus Hábitos',
+                label: 'Your Score',
                 data: [
-                    userNormalized.peak_hour,
-                    userNormalized.intensity_score,
-                    userNormalized.interruptions
+                    userData.peak_hour, 
+                    userData.intensity_score, 
+                    userInterruptions * 10
                 ],
-                backgroundColor: 'rgba(79, 70, 229, 0.4)', // Azul/Índigo
-                borderColor: 'rgb(79, 70, 229)',
-                pointBackgroundColor: 'rgb(79, 70, 229)',
-                pointBorderColor: '#fff',
-                pointHoverBackgroundColor: '#fff',
-                pointHoverBorderColor: 'rgb(79, 70, 229)',
-                borderWidth: 2
+                backgroundColor: 'rgba(54, 162, 235, 0.7)', // Blue
+                borderColor: 'rgb(54, 162, 235)',
+                borderWidth: 1
             },
             {
-                label: 'Promedio Comunitario',
+                label: `Community Average (${totalParticipants} Total)`,
                 data: [
-                    communityNormalized.peak_hour,
-                    communityNormalized.intensity_score,
-                    communityNormalized.interruptions
+                    communityData.peak_hour, 
+                    communityData.intensity_score, 
+                    communityInterruptions * 10
                 ],
-                backgroundColor: 'rgba(220, 38, 38, 0.4)', // Rojo
-                borderColor: 'rgb(220, 38, 38)',
-                pointBackgroundColor: 'rgb(220, 38, 38)',
-                pointBorderColor: '#fff',
-                pointHoverBackgroundColor: '#fff',
-                pointHoverBorderColor: 'rgb(220, 38, 38)',
-                borderWidth: 2
+                backgroundColor: 'rgba(255, 99, 132, 0.7)', // Red
+                borderColor: 'rgb(255, 99, 132)',
+                borderWidth: 1
             }
         ]
     };
 
+    // Chart configuration options
     const config = {
-        type: 'radar',
+        type: 'bar',
         data: data,
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: {
-                title: {
-                    display: true,
-                    text: 'Comparación de Hábitos (Tu Mapa vs. Comunidad)',
-                    font: { size: 18, weight: 'bold' }
-                },
-                legend: {
-                    position: 'top',
-                }
-            },
             scales: {
-                r: {
-                    angleLines: { display: true },
-                    grid: { color: 'rgba(0, 0, 0, 0.1)' },
-                    pointLabels: { font: { size: 14 } },
-                    suggestedMin: 0,
-                    suggestedMax: 10, // Escala de 0 a 10
+                y: {
+                    beginAtZero: true,
+                    max: 100, 
+                    title: {
+                        display: true,
+                        text: 'Score / Value'
+                    },
                     ticks: {
-                        beginAtZero: true,
-                        stepSize: 2,
-                        backdropColor: 'rgba(247, 250, 252, 0.7)'
+                        callback: function(value, index, values) {
+                            // Solo ajusta el tick para el índice 2 (Interrupciones)
+                            if (index === 2) { 
+                                return value / 10;
+                            }
+                            return value; 
+                        }
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Habit Dimensions'
                     }
                 }
+            },
+            plugins: {
+                legend: { position: 'top' },
+                title: {
+                    display: true,
+                    text: 'Habit Comparison: You vs. Community Average'
+                }
             }
-        },
+        }
     };
 
-    // Crear la instancia del gráfico
     new Chart(ctx, config);
-};
+}

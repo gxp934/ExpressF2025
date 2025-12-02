@@ -1,17 +1,17 @@
-// Usaremos el módulo 'sqlite' para manejar la base de datos de forma simple.
+// We will use the 'sqlite' module to handle the database simply.
 const sqlite = require('sqlite');
 const sqlite3 = require('sqlite3');
 
 const DB_PATH = './habit_map.db';
 
-// Función que abre la conexión a la DB e inicializa la tabla
+// Function that opens the DB connection and initializes the table
 async function initializeDatabase() {
     const db = await sqlite.open({
         filename: DB_PATH,
         driver: sqlite3.Database
     });
 
-    // Crea la tabla 'habits' con las columnas necesarias
+    // Create the 'habits' table with the necessary columns
     await db.exec(`
         CREATE TABLE IF NOT EXISTS habits (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -22,10 +22,10 @@ async function initializeDatabase() {
         );
     `);
     
-    // Inserta datos de ejemplo si la base de datos está vacía para tener una comunidad inicial
+    // Insert sample data if the database is empty to have an initial community
     const count = await db.get('SELECT COUNT(*) as count FROM habits');
     if (count.count === 0) {
-        console.log("Insertando datos de ejemplo para la comparación inicial...");
+        console.log("Inserting sample data for initial comparison...");
         await db.run("INSERT INTO habits (user_id, peak_hour, intensity_score, interruptions) VALUES (?, ?, ?, ?)", "DemoUser1", 10, 85, 2);
         await db.run("INSERT INTO habits (user_id, peak_hour, intensity_score, interruptions) VALUES (?, ?, ?, ?)", "DemoUser2", 14, 50, 5);
         await db.run("INSERT INTO habits (user_id, peak_hour, intensity_score, interruptions) VALUES (?, ?, ?, ?)", "DemoUser3", 22, 95, 1);
@@ -35,7 +35,7 @@ async function initializeDatabase() {
     return db;
 }
 
-// Función para guardar los resultados del quiz
+// Function to save the quiz results
 async function saveHabitData(db, userId, peakHour, intensityScore, interruptions) {
     try {
         const result = await db.run(
@@ -45,14 +45,14 @@ async function saveHabitData(db, userId, peakHour, intensityScore, interruptions
         return { success: true, lastID: result.lastID };
     } catch (error) {
         if (error.message.includes('UNIQUE constraint failed')) {
-             return { success: false, message: `El ID de usuario '${userId}' ya existe. Por favor, usa otro.` };
+             return { success: false, message: `User ID '${userId}' already exists. Please use a different one.` };
         }
-        console.error("Error al guardar datos:", error.message);
-        return { success: false, message: "Error interno al guardar los datos." };
+        console.error("Error saving data:", error.message);
+        return { success: false, message: "Internal error saving data." };
     }
 }
 
-// Función para obtener todos los datos para la comparación
+// Function to get all data for comparison
 async function getAllHabits(db) {
     return db.all('SELECT * FROM habits');
 }

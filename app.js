@@ -8,55 +8,55 @@ const port = 3000;
 
 let db;
 
-// Configuración de Express y EJS
+// Express and EJS configuration
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Inicializar la base de datos
+// Initialize the database
 initializeDatabase()
     .then(database => {
         db = database;
-        console.log('Base de datos SQLite inicializada y lista.');
+        console.log('SQLite database initialized and ready.');
     })
     .catch(err => {
-        console.error('Error al inicializar la base de datos:', err);
-        process.exit(1); // Detener la app si la DB falla
+        console.error('Error initializing the database:', err);
+        process.exit(1); // Stop the app if the DB fails
     });
 
-// --- RUTA 1: Inicio (GET /start) ---
+// --- ROUTE 1: Start Page (GET /start) ---
 app.get('/', (req, res) => {
     res.redirect('/start');
 });
 
 app.get('/start', (req, res) => {
-    res.render('start', { pageTitle: 'Inicio - Your Habit Map', error: null });
+    res.render('start', { pageTitle: 'Start - Your Habit Map', error: null });
 });
 
-// --- RUTA 2: Cuestionario (POST /quiz) ---
+// --- ROUTE 2: Quiz (POST /quiz) ---
 app.post('/quiz', (req, res) => {
     const { userId } = req.body;
     
     if (!userId || userId.trim().length === 0) {
         return res.render('start', { 
-            pageTitle: 'Inicio - Your Habit Map', 
-            error: 'El ID de usuario no puede estar vacío.' 
+            pageTitle: 'Start - Your Habit Map', 
+            error: 'User ID cannot be empty.' 
         });
     }
 
-    // Limpia el userId para asegurar un formato seguro y consistente
+    // Clean the userId to ensure a safe and consistent format
     const cleanUserId = userId.trim().replace(/[^a-zA-Z0-9]/g, '_');
     
-    // Redirige al cuestionario, pasando el ID limpio
-    res.render('quiz', { pageTitle: 'Cuestionario de Hábitos', userId: cleanUserId });
+    // Redirect to the quiz, passing the clean ID
+    res.render('quiz', { pageTitle: 'Habit Questionnaire', userId: cleanUserId });
 });
 
-// --- RUTA 3: Guardar Datos (POST /submit-habit) ---
+// --- ROUTE 3: Save Data (POST /submit-habit) ---
 app.post('/submit-habit', async (req, res) => {
     const { userId, peak_hour, intensity_score, interruptions } = req.body;
 
-    // Convertir a enteros para asegurar la consistencia en la DB
+    // Convert to integers for consistency in the DB
     const peakHour = parseInt(peak_hour, 10);
     const intensityScore = parseInt(intensity_score, 10);
     const interruptionsCount = parseInt(interruptions, 10);
@@ -65,22 +65,22 @@ app.post('/submit-habit', async (req, res) => {
         const result = await saveHabitData(db, userId, peakHour, intensityScore, interruptionsCount);
         
         if (result.success) {
-            // Si es exitoso, redirige a la página de resultados con el ID
+            // If successful, redirect to the results page with the ID
             res.redirect(`/mapa/${userId}`);
         } else {
-            // Maneja el error de ID duplicado o cualquier otro error de la DB
+            // Handle duplicate ID error or any other DB error
              res.render('start', { 
-                pageTitle: 'Inicio - Your Habit Map', 
+                pageTitle: 'Start - Your Habit Map', 
                 error: result.message
             });
         }
     } catch (error) {
-        console.error("Error al procesar el envío del formulario:", error);
-        res.status(500).send("Error interno del servidor al guardar datos.");
+        console.error("Error processing form submission:", error);
+        res.status(500).send("Internal server error while saving data.");
     }
 });
 
-// --- RUTA 4: Visualización del Mapa (GET /mapa/:id) ---
+// --- ROUTE 4: Map Visualization (GET /mapa/:id) ---
 app.get('/mapa/:id', async (req, res) => {
     const userId = req.params.id;
 
@@ -88,17 +88,17 @@ app.get('/mapa/:id', async (req, res) => {
         const allHabits = await getAllHabits(db);
         
         if (allHabits.length === 0) {
-            return res.status(404).send("No hay datos en la base de datos.");
+            return res.status(404).send("No data found in the database.");
         }
 
-        // 1. Encontrar el registro del usuario actual
+        // 1. Find the current user's record
         const userHabit = allHabits.find(h => h.user_id === userId);
 
         if (!userHabit) {
-            return res.status(404).send(`Datos no encontrados para el ID: ${userId}.`);
+            return res.status(404).send(`Data not found for ID: ${userId}.`);
         }
 
-        // 2. Calcular el promedio de la comunidad (incluyendo al usuario)
+        // 2. Calculate the community average (including the current user)
         const totalParticipants = allHabits.length;
         const sumPeakHour = allHabits.reduce((sum, h) => sum + h.peak_hour, 0);
         const sumIntensityScore = allHabits.reduce((sum, h) => sum + h.intensity_score, 0);
@@ -110,9 +110,9 @@ app.get('/mapa/:id', async (req, res) => {
             interruptions: parseFloat((sumInterruptions / totalParticipants).toFixed(1))
         };
 
-        // 3. Renderizar la página de resultados
+        // 3. Render the results page
         res.render('mapa', { 
-            pageTitle: 'Tu Habit Map', 
+            pageTitle: 'Your Habit Map', 
             userId, 
             userHabit, 
             communityAvg,
@@ -120,13 +120,13 @@ app.get('/mapa/:id', async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Error al obtener datos para el mapa:", error);
-        res.status(500).send("Error interno del servidor al cargar el mapa.");
+        console.error("Error retrieving data for the map:", error);
+        res.status(500).send("Internal server error while loading the map.");
     }
 });
 
 
 app.listen(port, () => {
-    console.log(`Servidor Express escuchando en http://localhost:${port}`);
-    console.log("¡Listo para probar la aplicación!");
+    console.log(`Express server listening on http://localhost:${port}`);
+    console.log("Ready to test the application!");
 });
